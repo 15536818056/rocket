@@ -1,3 +1,6 @@
+/*
+    提供工具类的函数
+*/
 #ifndef ROCKET_COMMON_UTIL_H
 #define ROCKET_COMMON_UTIL_H
 

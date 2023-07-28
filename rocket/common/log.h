@@ -3,7 +3,7 @@
 // 防止头文件重复包含，命名规则为项目名 + 目录名 + 文件名
 
 #include <string>
-#include <vector>
+#include <queue>
 #include <memory>
 #include "rocket/common/config.h"
 #include "rocket/common/mutex.h"
@@ -11,9 +11,9 @@
 namespace rocket 
 //隔离库代码，防止命名空间污染
 {
-
 template<typename... Args>  //可变参数模板，允许传入任意数量和类型的参数
-std::string formatString(const char * str, Args&&... args)  //接受一个C风格字符串和可变参数
+std::string formatString(const char * str, Args&&... args)  //接受一个C风格字符串和可变参数,比如("%s","11") 或者 ("%s, %d", "11", 11)都行
+//实现自定义消息
 {
     int size  = snprintf(nullptr, 0, str, args...); //获取格式化后字符串的长度，不会将结果输出到缓冲区，仅计算长度
     std::string result; //定义一个字符串变量用于存储格式化后的结果
@@ -83,13 +83,14 @@ enum LogLevel
     Error = 3
 };
 
+//日志器，打印日志
 class Logger
 {
 public:
     typedef std::shared_ptr<Logger> s_ptr;
     Logger(LogLevel level): m_set_level(level) {};
-    void pushLog(const std::string & msg);
-    void log();
+    void pushLog(const std::string & msg);  //将msg对象塞到buffer中
+    void log(); //将buffer中的日志输出，后续优化 ① 异步 ② 输出到文件
     LogLevel getLogLevel() const 
     {
         return m_set_level;
@@ -98,8 +99,8 @@ public:
     static Logger * GetGlobalLogger();
     static void InitGlobalLogger();
 private:
-    LogLevel m_set_level;
-    std::vector<std::string> m_buffer;
+    LogLevel m_set_level;   //日志级别
+    std::queue<std::string> m_buffer;  //日志队列
     Mutex m_mutex;
 };
 

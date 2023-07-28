@@ -1,7 +1,6 @@
 #include <sys/time.h>
 #include <sstream>
 #include <stdio.h>
-#include <vector>
 #include "rocket/common/log.h"
 #include "rocket/common/util.h"
 
@@ -59,10 +58,11 @@ namespace rocket
         }
     }
 
+    //格式化字符串
     std::string LogEvent::toString()
     {
         struct timeval now_time;
-        gettimeofday(&now_time, nullptr);
+        gettimeofday(&now_time, nullptr);   //获取到当前时间
         struct tm now_time_t;
         localtime_r(&(now_time.tv_sec), &now_time_t);
 
@@ -88,21 +88,22 @@ namespace rocket
     void Logger::pushLog(const std::string & msg)
     {
         ScopeMutex<Mutex> lock(m_mutex);
-        m_buffer.push_back(msg);
+        m_buffer.push(msg);
         lock.unlock(); 
     }
 
+    //多个线程可能会同时调用log方法
     void Logger::log()
     {
         ScopeMutex<Mutex> lock(m_mutex);
-        std::vector<std::string> tmp = m_buffer;
+        std::queue<std::string> tmp;
         m_buffer.swap(tmp);
         lock.unlock();
 
         while (!tmp.empty())
         {
             std::string msg = tmp.front();    //m_buffer是全局变量，没有加锁，多个线程访问会有线程安全问题
-            tmp.pop_back();
+            tmp.pop();
             printf("%s\n", msg.c_str());
         }
     }

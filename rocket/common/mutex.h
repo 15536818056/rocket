@@ -6,6 +6,7 @@
 namespace rocket {
 
 /*
+由于互斥锁会经常忘了释放，会造成死锁或者性能下降
 ScopeMutex是一种特殊类型的互斥锁，它具有作用域限定的特性。通常来说，互斥锁的加锁和解锁操作需要手动进行，而ScopeMutex可以利用其生命周期来自动管理锁的申请和释放。
 ScopeMutex的基本原理是，在创建ScopeMutex对象时自动加锁，当对象的生命周期结束时自动解锁。这样可以避免程序员忘记释放锁导致的问题，简化代码的编写和维护。
 */
@@ -38,6 +39,7 @@ private:
     bool m_is_lock{false};
 };
 
+//封装一个互斥锁的类
 class Mutex {
 public:
     Mutex() {
