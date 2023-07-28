@@ -8,6 +8,7 @@
 #include "rocket/net/fd_event.h"
 #include "rocket/net/wakeup_fd_event.h"
 #include "rocket/common/log.h"
+#include "rocket/net/timer.h"
 
 namespace rocket {
 class EventLoop {
@@ -22,9 +23,11 @@ public:
     bool isInLoopThread();  //判断当前是否是EventLoop的IO线程
     void addTask(std::function<void()> cb, bool is_wake_up = false); 
     //将任务添加到pending队列中,当此线程从epoll_wait返回后，自己去执行这些任务,而不是由其他线程执行，将任务封装到回调函数中
+    void addTimerEvent(TimerEvent::s_ptr event);
 private:
-    void  dealWakeup();              //处理wake的函数
+    void dealWakeup();              //处理wake的函数
     void initWakeUpFdEvent();
+    void initTimer();
 private:
     pid_t m_thread_id {0};    //该对象每个线程只能有一个
     int m_epoll_fd {0}; //epoll句柄
@@ -34,6 +37,7 @@ private:
     std::set<int> m_listen_fds; //表示当前监听的所有套接字
     std::queue<std::function<void()>> m_pending_tasks;  //所有待执行的任务队列
     Mutex m_mutex;
+    Timer * m_timer {NULL};
 };
 
 }

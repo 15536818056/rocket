@@ -11,6 +11,7 @@ public:
         IN_EVENT = EPOLLIN,
         OUT_EVENT = EPOLLOUT,
     }; 
+    FdEvent();
     FdEvent(int fd);
 
     ~FdEvent();
