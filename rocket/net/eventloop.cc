@@ -142,7 +142,7 @@ void EventLoop::loop() {
     }
 }
 void EventLoop::wakeup() {
-    INFOLOG("wake up");
+    INFOLOG("wake up fd = %d", m_wakeup_fd);
     m_wakeup_fd_event->wakeup();
 }
 void EventLoop::stop() {
