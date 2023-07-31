@@ -97,6 +97,7 @@ void EventLoop::initWakeUpFdEvent() {
 }
 
 void EventLoop::loop() {
+    m_is_loopping = true;
     while (!m_stop_flag) {
         ScopeMutex<Mutex> lock(m_mutex);
         std::queue<std::function<void()>> tmp_tasks;
@@ -194,6 +195,10 @@ EventLoop * EventLoop::GetCurrentEventLoop() {
     t_current_eventloop = new EventLoop();
     return t_current_eventloop;
 }
+bool EventLoop::isLooping() {
+    return m_is_loopping;
+}
+
 }
 
 
