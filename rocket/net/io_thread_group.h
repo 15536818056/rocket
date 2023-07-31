@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "rocket/net/io_thread.h"   
-#include "rocket/common/log.h"
 
 
 namespace rocket {

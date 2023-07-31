@@ -7,10 +7,10 @@
 
 //首先判断之前是否添加过fd，如果之前添加过，就变成修改
 #define ADD_TO_EPOLL() \
-    auto it = m_listen_fds.find(event->getFd());    \ 
+    auto it = m_listen_fds.find(event->getFd()); \
     int op = EPOLL_CTL_ADD; \
     if (it != m_listen_fds.end()) {  \
-        op = EPOLL_CTL_MOD;  }  \ 
+        op = EPOLL_CTL_MOD;  }  \
     epoll_event tmp = event->getEpollEvent(); \
     int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), &tmp); \
     if (rt == -1) { \
@@ -146,7 +146,8 @@ void EventLoop::wakeup() {
     m_wakeup_fd_event->wakeup();
 }
 void EventLoop::stop() {
-
+    m_stop_flag = true;
+    wakeup();
 }
 
 void EventLoop::dealWakeup(){
@@ -184,6 +185,14 @@ void EventLoop::addTask(std::function<void()> cb, bool is_wake_up) {
 
 bool EventLoop::isInLoopThread() {
     return getThreadId() == m_thread_id;
+}
+
+EventLoop * EventLoop::GetCurrentEventLoop() {
+    if (t_current_eventloop) {
+        return t_current_eventloop;
+    }
+    t_current_eventloop = new EventLoop();
+    return t_current_eventloop;
 }
 }
 

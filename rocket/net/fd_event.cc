@@ -1,42 +1,71 @@
+#include <fcntl.h>
 #include <string.h>
 #include "rocket/net/fd_event.h"
 #include "rocket/common/log.h"
 
-namespace rocket {
+namespace rocket
+{
 
-FdEvent::FdEvent(int fd) : m_fd(fd) {
-    memset(&m_listen_events, 0, sizeof(m_listen_events));
-}
-
-FdEvent::FdEvent() {
-    memset(&m_listen_events, 0, sizeof(m_listen_events));
-}
-FdEvent::~FdEvent() {
-
-}
-
-std::function<void()> FdEvent::handler(TriggerEvent event_type) {
-    if (event_type == TriggerEvent::IN_EVENT)
+    FdEvent::FdEvent(int fd) : m_fd(fd)
     {
-        return m_read_callback;
-    } else {
-        return m_write_callback;
+        memset(&m_listen_events, 0, sizeof(m_listen_events));
     }
-}
 
-void FdEvent::listen(TriggerEvent event_type, std::function<void()> callback) {
-    if (event_type == TriggerEvent::IN_EVENT) {
-        m_listen_events.events  |= EPOLLIN;
-        m_listen_events.data.ptr = this;
-        m_read_callback = callback;
-    } else {
-        m_listen_events.events |= EPOLLOUT;
-        m_listen_events.data.ptr = this;
-        m_write_callback = callback;
+    FdEvent::FdEvent()
+    {
+        memset(&m_listen_events, 0, sizeof(m_listen_events));
     }
-}
+    FdEvent::~FdEvent()
+    {
+    }
 
+    std::function<void()> FdEvent::handler(TriggerEvent event_type)
+    {
+        if (event_type == TriggerEvent::IN_EVENT)
+        {
+            return m_read_callback;
+        }
+        else
+        {
+            return m_write_callback;
+        }
+    }
 
+    void FdEvent::listen(TriggerEvent event_type, std::function<void()> callback)
+    {
+        if (event_type == TriggerEvent::IN_EVENT)
+        {
+            m_listen_events.events |= EPOLLIN;
+            m_read_callback = callback;
+        }
+        else
+        {
+            m_listen_events.events |= EPOLLOUT;
+            m_write_callback = callback;
+        }
+        m_listen_events.data.ptr = this;
+    }
 
+    void FdEvent::cancel(TriggerEvent event_type)
+    {
+        if (event_type == TriggerEvent::IN_EVENT)
+        {
+            m_listen_events.events &= (~EPOLLIN); //与上非
+        }
+        else
+        {
+            m_listen_events.events &= (~EPOLLOUT);
+        }
+    }
+
+    void FdEvent::setNonBlock()
+    {
+        int flag = fcntl(m_fd, F_GETFL, 0);
+        if (flag & O_NONBLOCK)
+        {
+            return;
+        }
+        fcntl(m_fd, F_SETFL, flag | O_NONBLOCK);
+    }
 
 }

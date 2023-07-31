@@ -39,6 +39,7 @@ namespace rocket
             resizeBuffer(new_size);
         }
         memcpy(&m_buffer[m_write_index], buf, size);
+        m_write_index += size;
     }
     void TcpBuffer::readFromBuffer(std::vector<char> &re, int size)
     {
@@ -85,7 +86,7 @@ namespace rocket
     {
         // 移动的距离不能超过数组大小, 先获得移动后的距离
         size_t j = m_read_index + size;
-        if (j > m_buffer.size())
+        if (j >= m_buffer.size())
         {
             ERRORLOG("moveReadIndex error, invalid size %d, old_read_index %d, buffer size %d", size, m_read_index, m_buffer.size());
         }
@@ -94,8 +95,8 @@ namespace rocket
     }
     void TcpBuffer::moveWriteIndex(int size)
     {
-        int j = m_read_index + size;
-        if (j > m_buffer.size())
+        size_t j = m_write_index + size;
+        if (j >= m_buffer.size())
         {
             ERRORLOG("moveWriteIndex error, invalid size %d, old_read_index %d, buffer size %d", size, m_read_index, m_buffer.size());
         }

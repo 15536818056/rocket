@@ -24,6 +24,9 @@ public:
     void addTask(std::function<void()> cb, bool is_wake_up = false); 
     //将任务添加到pending队列中,当此线程从epoll_wait返回后，自己去执行这些任务,而不是由其他线程执行，将任务封装到回调函数中
     void addTimerEvent(TimerEvent::s_ptr event);
+public:
+    static EventLoop * GetCurrentEventLoop();    //获得当前线程的EventLoop对象， 如果当前线程没有会去构建一个
+    
 private:
     void dealWakeup();              //处理wake的函数
     void initWakeUpFdEvent();
