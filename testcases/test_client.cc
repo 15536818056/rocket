@@ -10,6 +10,8 @@
 #include "rocket/common/config.h"
 #include "rocket/net/tcp/tcp_client.h"
 #include "rocket/net/tcp/net_addr.h"
+#include "rocket/net/string_coder.h"
+#include "rocket/net/abstract_protocol.h"
 
 void test_connect()
 {
@@ -27,22 +29,39 @@ void test_connect()
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(11111);
     inet_aton("127.0.0.1", &server_addr.sin_addr);
-    int rt = connect(fd, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
+    int rt = connect(fd, reinterpret_cast<sockaddr *>(&server_addr), sizeof(server_addr));
     DEBUGLOG("connect success");
 
     std::string msg = "hello rocket!";
     rt = write(fd, msg.c_str(), msg.length());
     DEBUGLOG("success write %d bytes, [%s]", rt, msg.c_str());
-    char buf[BUFSIZ];   //https://blog.csdn.net/ImwaterP/article/details/119140242
+    char buf[BUFSIZ]; // https://blog.csdn.net/ImwaterP/article/details/119140242
     rt = read(fd, buf, sizeof(buf));
-    DEBUGLOG("success read %d bytes, [%s]", rt, std::string(buf).c_str()); 
+    DEBUGLOG("success read %d bytes, [%s]", rt, std::string(buf).c_str());
 }
 
-void test_tcp_client() {
+void test_tcp_client()
+{
     rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 11111);
     rocket::TcpClient client(addr);
-    client.connect([=](){
+    client.connect([addr, &client]() { // 这里如果是=就会报错
         DEBUGLOG("connect to [%s] success", addr->toString().c_str());
+        std::shared_ptr<rocket::StringProtocol> message = std::make_shared<rocket::StringProtocol>();
+        message->info = "hello rocket";
+        message->setReqId("123456");
+        client.writeMessage(message, [=](rocket::AbstractProtocol::s_ptr msg_ptr)
+            { 
+                DEBUGLOG("send message success"); 
+            });
+        client.readMessage("123456", [=](rocket::AbstractProtocol::s_ptr msg_ptr)
+            { 
+                std::shared_ptr<rocket::StringProtocol> message = std::dynamic_pointer_cast<rocket::StringProtocol>(msg_ptr);
+                DEBUGLOG("req_id [%s], get response %s", message->getReqId().c_str(), message->info.c_str()); 
+            });
+        client.writeMessage(message, [=](rocket::AbstractProtocol::s_ptr msg_ptr)
+            { 
+                DEBUGLOG("send message 2222 success"); 
+            });
     });
 }
 

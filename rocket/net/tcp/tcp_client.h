@@ -4,7 +4,7 @@
 #include "rocket/net/tcp/net_addr.h"
 #include "rocket/net/eventloop.h"
 #include "rocket/net/tcp/tcp_connection.h"
-#include "rocket/net/tcp/abstract_protocol.h"
+#include "rocket/net/abstract_protocol.h"
 
 namespace rocket {
 
@@ -19,11 +19,12 @@ public:
 
     //异步的发送Message,Message是什么都行
     //如果发送message成功，会调用done函数,函数的入参就是message对象
+    //将message对象写入TcpConnect输出缓冲区中，然后开启可写事件监听
     void writeMessage(AbstractProtocol::s_ptr message, std::function<void(AbstractProtocol::s_ptr)>done);
 
     //异步的读取Message
     //如果读取message成功，会调用done函数，函数的入参就是message对象 
-    void readMessage(AbstractProtocol::s_ptr message, std::function<void(AbstractProtocol::s_ptr)>done);
+    void readMessage(const std::string & req_id, std::function<void(AbstractProtocol::s_ptr)>done);
 
 private:
     NetAddr::s_ptr m_peer_addr;     //对端地址
