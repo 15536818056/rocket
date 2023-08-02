@@ -1,6 +1,8 @@
-#include "rocket/common/util.h"
+#include <arpa/inet.h>
 #include <sys/syscall.h>
 #include <sys/time.h>
+#include <string.h>
+#include "rocket/common/util.h"
 
 namespace rocket
 {
@@ -30,7 +32,13 @@ namespace rocket
         return val.tv_sec * 1000 +  val.tv_usec / 1000;
     }
 
-
+    //这个函数的作用是将网络字节序转换为主机字节序
+    int32_t getInt32FromNetByte(const char * buf)
+    {
+        int32_t re;
+        memcpy(&re, buf, sizeof(re));
+        return ntohl(re);
+    }
 
 
 

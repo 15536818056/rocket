@@ -2,9 +2,8 @@
 #include <unistd.h>
 #include <string.h>
 #include "rocket/common/log.h"
-#include "rocket/net/tcp/tcp_client.h"
-#include "rocket/net/eventloop.h"
 #include "rocket/net/fd_event_group.h"
+#include "rocket/net/tcp/tcp_client.h"
 
 namespace rocket
 {
