@@ -17,7 +17,7 @@ public:
 
 public:
     //请求号，唯一标识一个请求,或者响应;一个rpc请求和响应的标识应该一致
-    std::string m_req_id;
+    std::string m_msg_id;
 
 
 };

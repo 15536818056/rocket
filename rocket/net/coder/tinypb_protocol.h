@@ -17,7 +17,7 @@ public:
 
 public:
     int32_t m_pk_len {0};   //整包长度,4个字节
-    int32_t m_req_id_len {0};   //req_id长度，req_id继承父类
+    int32_t m_msg_id_len {0};   //req_id长度，req_id继承父类
     int32_t m_method_name_len {0};   //方法名长度
     std::string m_method_name;  //方法名
     int32_t m_err_code {0}; //错误码
