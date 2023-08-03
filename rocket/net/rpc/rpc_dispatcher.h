@@ -14,6 +14,8 @@ class TcpConnection;
 class RpcDispatcher
 {
 public:
+    static RpcDispatcher * GetRpcDispatcher();
+public:
     typedef std::shared_ptr<google::protobuf::Service> service_s_ptr;
     //根据请求的message对象，调用rpc方法，最终得到响应的message对象
     void dispatcher(AbstractProtocol::s_ptr request, AbstractProtocol::s_ptr response, TcpConnection * connection);

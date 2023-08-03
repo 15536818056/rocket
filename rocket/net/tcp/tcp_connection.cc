@@ -21,7 +21,6 @@ namespace rocket
         // 客户端只需要在需要读回包的时候监听
         {
             listenRead();
-            m_dispatcher = std::make_shared<RpcDispatcher>();
         }
     }
     TcpConnection::~TcpConnection()
@@ -115,7 +114,7 @@ namespace rocket
                 std::shared_ptr<TinyPBProtocol> message = std::make_shared<TinyPBProtocol>();
                 // message->m_pb_data = "hello, this is rocket rpc test data";
                 // message->m_req_id = result[i]->m_req_id;
-                m_dispatcher->dispatcher(result[i], message, this);
+                RpcDispatcher::GetRpcDispatcher()->dispatcher(result[i], message, this);
                 replay_messages.emplace_back(message);
             }
             m_coder->encode(replay_messages, m_out_buffer);           

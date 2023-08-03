@@ -68,7 +68,6 @@ namespace rocket
         std::vector<std::pair<AbstractProtocol::s_ptr, std::function<void(AbstractProtocol::s_ptr)>>> m_write_dones;
         //读回调,key 为req_id
         std::map<std::string, std::function<void(AbstractProtocol::s_ptr)>> m_read_dones;
-        std::shared_ptr<RpcDispatcher> m_dispatcher;
 
     };
 
