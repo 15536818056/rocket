@@ -148,7 +148,7 @@ void EventLoop::wakeup() {
 }
 void EventLoop::stop() {
     m_stop_flag = true;
-    wakeup();
+    wakeup();   //把线程从eventloop里面唤醒
 }
 
 void EventLoop::dealWakeup(){

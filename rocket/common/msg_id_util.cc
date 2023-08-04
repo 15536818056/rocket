@@ -36,7 +36,7 @@ namespace rocket
         } 
         else 
         {
-            int i = t_msg_id_no.length() - 1; 
+            size_t i = t_msg_id_no.length() - 1; 
             while (t_msg_id_no[i] == '9' && i >= 0)
             {
                 i--;

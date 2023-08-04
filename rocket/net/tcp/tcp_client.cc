@@ -83,6 +83,13 @@ namespace rocket
         }
 
     }
+    void TcpClient::stop()
+    {
+        if (m_event_loop->isLooping())
+        {
+            m_event_loop->stop();
+        }
+    }
 
     void TcpClient::writeMessage(AbstractProtocol::s_ptr message, std::function<void(AbstractProtocol::s_ptr)> done)
     {

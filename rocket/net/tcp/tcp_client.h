@@ -1,6 +1,7 @@
 #ifndef ROCKET_NET_TCP_TCP_CLIENT_H
 #define ROCKET_NET_TCP_TCP_CLIENT_H
 
+#include <memory>
 #include "rocket/net/tcp/net_addr.h"
 #include "rocket/net/eventloop.h"
 #include "rocket/net/tcp/tcp_connection.h"
@@ -10,6 +11,7 @@ namespace rocket {
 
 class TcpClient {
 public:
+    typedef std::shared_ptr<TcpClient> s_ptr;
     TcpClient(NetAddr::s_ptr peer_addr);   //对端地址 
     ~TcpClient();
     //异步的进行connect,因此需要一个回调来获取结果
@@ -25,6 +27,8 @@ public:
     //异步的读取Message
     //如果读取message成功，会调用done函数，函数的入参就是message对象 
     void readMessage(const std::string & req_id, std::function<void(AbstractProtocol::s_ptr)>done);
+    //结束loop循环
+    void stop();
 
 private:
     NetAddr::s_ptr m_peer_addr;     //对端地址
