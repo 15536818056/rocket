@@ -6,6 +6,7 @@
 #include "rocket/net/eventloop.h"
 #include "rocket/net/tcp/tcp_connection.h"
 #include "rocket/net/coder/abstract_protocol.h"
+#include "rocket/net/timer_event.h"
 
 namespace rocket {
 
@@ -37,6 +38,8 @@ public:
     NetAddr::s_ptr getLocalAddr();
 
     void initLocalAddr();
+
+    void addTimerEvent(TimerEvent::s_ptr timer_event);
 
 private:
     NetAddr::s_ptr m_peer_addr;     //对端地址

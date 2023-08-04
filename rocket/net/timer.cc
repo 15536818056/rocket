@@ -17,6 +17,7 @@ namespace rocket {
 
     void Timer::onTimer() { //触发可读事件后，执行的回调函数
     //处理缓冲区数据，防止下一次继续触发可读事件
+        DEBUGLOG("ontimer");
         char buf[8];
         while (1) {
             if ((read(m_fd, buf, 8) == -1) && errno == EAGAIN) {

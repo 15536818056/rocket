@@ -8,7 +8,8 @@
 #include "rocket/net/tcp/tcp_client.h"
 #include "rocket/common/msg_id_util.h"
 #include "rocket/common/log.h"
-#include "rocket/common/error_code.h" G
+#include "rocket/common/error_code.h" 
+#include "rocket/net/timer_event.h" 
 
 namespace rocket
 {
@@ -69,6 +70,20 @@ namespace rocket
 
         // 构造对象的时候一定要用智能指针去构造，不要用栈或者new，不然会会造成野指针的问题
         s_ptr channel = shared_from_this(); // 将channel转换为智能指针对象
+        //创建定时任务,下一步将定时任务添加到epoll里面
+        m_timer_event = std::make_shared<TimerEvent>(my_controller->GetTimeout(), false, [my_controller, channel]() mutable {
+            my_controller->StartCancel();
+            my_controller->SetError(ERROR_RPC_CALL_TIMEOUT, "rpc call timeout" + std::to_string(my_controller->GetTimeout()));
+            //如果客户端有回调，执行客户端回调
+            if (channel->getClosure())
+            {
+                channel->getClosure()->Run();
+            }
+            //将智能指针reste一下防止无法析构
+            channel.reset();
+        });
+        //将定时任务添加进去
+        m_client->addTimerEvent(m_timer_event);
 
         // 4.连接
         m_client->connect([=]() mutable { // 连接成功后调用回调函数
@@ -100,6 +115,8 @@ namespace rocket
                         my_controller->SetError(ERROR_FAILED_SERIALIZE, "serialize error");
                         return;
                     }
+                     //读包成功取消timer，防止触发定时任务
+                    channel->getTimerEvent()->setCancel(true); 
                     if (rsp_protocol->m_err_code != 0)
                     {
                         ERRORLOG("%s | call rpc method[%s] failed, error code [%d], error info[%s]", rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(), rsp_protocol->m_err_code, rsp_protocol->m_err_info.c_str());
@@ -107,8 +124,11 @@ namespace rocket
                         return;
                     }
                     INFOLOG("%s | call rpc success, call method name [%s], peer addr [%s], local addr [%s]", rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(), channel->getTcpClient()->getPeerAddr()->toString().c_str(), channel->getTcpClient()->getLocalAddr()->toString().c_str());
+
+                   
+
                     //执行客户端传入的回调函数
-                    if (channel->getClosure())  //获取回调函数
+                    if (!(my_controller->IsCanceled()) && channel->getClosure())  //获取回调函数
                     {
                         channel->getClosure()->Run();  //如果有回调函数就执行
                     }
@@ -147,10 +167,12 @@ namespace rocket
     {
         return m_closure.get();
     }
-
-
     TcpClient * RpcChannel::getTcpClient() 
     {
         return m_client.get();
+    }
+    TimerEvent::s_ptr RpcChannel::getTimerEvent()
+    {
+        return m_timer_event;
     }
 }

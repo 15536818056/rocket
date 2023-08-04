@@ -5,9 +5,30 @@
 #include <memory>
 #include "rocket/net/tcp/net_addr.h"
 #include "rocket/net/tcp/tcp_client.h"
+#include "rocket/net/timer_event.h"
 
 namespace rocket 
 {
+#define NEWMESSAGE(type, var_name) \
+    std::shared_ptr<type> var_name = std::make_shared<type>();  \
+
+#define NEWRPCCONTROLLER(var_name) \
+    std::shared_ptr<rocket::RpcController> var_name = std::make_shared<rocket::RpcController>(); \
+
+#define NEWPRCCHANNEL(addr, var_name) \
+    std::shared_ptr<rocket::RpcChannel> var_name = std::make_shared<rocket::RpcChannel>(std::make_shared<rocket::IPNetAddr>(addr));
+
+//加{}保护可以防止变量有命名冲突
+
+#define CALLRPC(addr, method_name, contronller, request, response, closure) \
+    {\
+        NEWPRCCHANNEL(addr, channel); \
+        channel->Init(controller, request, response, closure); \
+        Order_Stub(channel.get()).method_name(controller.get(), request.get(), response.get(), closure.get()); \
+    } \
+
+
+
 class RpcChannel : public google::protobuf::RpcChannel, public std::enable_shared_from_this<RpcChannel>
 {
 public:
@@ -28,6 +49,7 @@ public:
     google::protobuf::Message * getResponse();
     google::protobuf::Closure * getClosure();
     TcpClient * getTcpClient();
+    TimerEvent::s_ptr getTimerEvent();
 
 private:
     NetAddr::s_ptr m_peer_addr {nullptr}; 
@@ -38,6 +60,8 @@ private:
     closure_s_ptr m_closure {nullptr};
     bool m_is_init {false};
     TcpClient::s_ptr m_client {nullptr};
+
+    TimerEvent::s_ptr m_timer_event {nullptr};
 };
 
 
