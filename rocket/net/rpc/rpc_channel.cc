@@ -71,20 +71,27 @@ namespace rocket
         s_ptr channel = shared_from_this(); // 将channel转换为智能指针对象
 
         // 4.连接
-        m_client->connect([req_protocol, channel]() mutable { // 连接成功后调用回调函数
+        m_client->connect([=]() mutable { // 连接成功后调用回调函数
+            RpcController * my_controller = dynamic_cast<RpcController *>(channel->getController());
+            if (channel->getTcpClient()->getConnectErrorCode() != 0)
+            {
+                my_controller->SetError(channel->getTcpClient()->getConnectErrorCode(), channel->getTcpClient()->getConnectErrorInfo());
+                ERRORLOG("%s | connect error, error code [%d], error info[%s], peer addr [%s]", req_protocol->m_msg_id.c_str(), my_controller->GetErrorCode(), my_controller->GetErrorInfo().c_str(), channel->getTcpClient()->getPeerAddr()->toString().c_str());
+                return;
+            }
+
             // 将请求的协议对象发送给对方
-            channel->getTcpClient()->writeMessage(req_protocol, [req_protocol, channel](AbstractProtocol::s_ptr) mutable
+            channel->getTcpClient()->writeMessage(req_protocol, [=](AbstractProtocol::s_ptr) mutable
                                 {
-                INFOLOG("%s | send rpc request success. call method name [%s]", req_protocol->m_msg_id.c_str(), req_protocol->m_method_name.c_str());
+                INFOLOG("%s | send rpc request success. call method name [%s], peer addr [%s], local addr [%s]", req_protocol->m_msg_id.c_str(), req_protocol->m_method_name.c_str(), channel->getTcpClient()->getPeerAddr()->toString().c_str(),  channel->getTcpClient()->getLocalAddr()->toString().c_str());
                 //协程结合到这里就不用这么多回调函数了
                 //发送成功后读回包
-                channel->getTcpClient()->readMessage(req_protocol->m_msg_id, [channel](AbstractProtocol::s_ptr msg) mutable {
+                channel->getTcpClient()->readMessage(req_protocol->m_msg_id, [=](AbstractProtocol::s_ptr msg) mutable {
                     //成功获取回包
                     std::shared_ptr<rocket::TinyPBProtocol> rsp_protocol = std::dynamic_pointer_cast<rocket::TinyPBProtocol>(msg);
                     //打印回包数据
-                    INFOLOG("%s | succcess get rpc response, method name [%s]", rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str());
-
-                    RpcController * my_controller = dynamic_cast<RpcController *>(channel->getController());
+                    INFOLOG("%s | succcess get rpc response, call method name [%s], peer addr [%s], local addr [%s]", rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(), channel->getTcpClient()->getPeerAddr()->toString().c_str(), channel->getTcpClient()->getLocalAddr()->toString().c_str());
+                    
                     //序列化
                     if (!(channel->getResponse()->ParseFromString(rsp_protocol->m_pb_data)))
                     {
@@ -99,7 +106,7 @@ namespace rocket
                         my_controller->SetError(rsp_protocol->m_err_code, rsp_protocol->m_err_info);
                         return;
                     }
-
+                    INFOLOG("%s | call rpc success, call method name [%s], peer addr [%s], local addr [%s]", rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str(), channel->getTcpClient()->getPeerAddr()->toString().c_str(), channel->getTcpClient()->getLocalAddr()->toString().c_str());
                     //执行客户端传入的回调函数
                     if (channel->getClosure())  //获取回调函数
                     {
