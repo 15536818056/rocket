@@ -102,7 +102,7 @@ void test_rpc_channel()
             ERRORLOG("call rpc failed, request [%s], error code[%d], error info [%s]", request->ShortDebugString().c_str(), controller->GetErrorCode(), controller->GetErrorInfo().c_str());
         }
         INFOLOG("now exit eventloop");
-        channel->getTcpClient()->stop();
+        // channel->getTcpClient()->stop();
         channel.reset();
     });
     // //初始化channel
@@ -116,8 +116,8 @@ void test_rpc_channel()
 
 int main()
 {
-    rocket::Config::SetGlobalConfig("conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger();
+    rocket::Config::SetGlobalConfig(NULL);
+    rocket::Logger::InitGlobalLogger(0);
     // test_tcp_client();
     test_rpc_channel();
 

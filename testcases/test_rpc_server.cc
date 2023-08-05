@@ -28,9 +28,9 @@ public:
                        ::makeOrderResponse* response,
                        ::google::protobuf::Closure* done)
     {
-        DEBUGLOG("start sleep 5");
+        APPDEBUGLOG("start sleep 5");   //APPLOG只能在RPC方法中调用
         sleep(5);
-        DEBUGLOG("end sleep 5s");
+        APPDEBUGLOG("end sleep 5s");
         if (request->price() < 10)
         {
             response->set_ret_code(-1);
@@ -38,27 +38,30 @@ public:
             return;
         }
         response->set_order_id("20230514");
+        APPDEBUGLOG("call makeOrder success");
     }
 
 };
 
-void test_tcp_server() {
-    rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 11111);
-    DEBUGLOG("create addr %s", addr->toString().c_str());
-    rocket::TcpServer tcp_server(addr);
-    tcp_server.start();
-}
+extern rocket::Config * g_config;
 
-
-int main()
+int main(int argc, char * argv[])
 {
-    rocket::Config::SetGlobalConfig("conf/rocket.xml");
+    if (argc != 2) {
+        printf("Start test_rpc_server error, arg not 2 \n");
+        printf("start like this: \n");
+        printf("./test_rpc_server conf/rocket.xml \n");
+        return 0;
+    }
+    rocket::Config::SetGlobalConfig(argv[1]);
     rocket::Logger::InitGlobalLogger();
     //生成service对象
     std::shared_ptr<OrderImpl> service = std::make_shared<OrderImpl>();
     //将service对象注册到rpc服务中
     rocket::RpcDispatcher::GetRpcDispatcher()->registerService(service);
 
-    test_tcp_server();
+    rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", rocket::Config::GetGlobalConfig()->m_port);
+    rocket::TcpServer tcp_server(addr);
+    tcp_server.start(); 
     return 0;
 }

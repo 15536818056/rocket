@@ -5,6 +5,7 @@
 #include "rocket/net/coder/tinypb_protocol.h"
 #include "rocket/common/log.h"
 #include "rocket/common/error_code.h"
+#include "rocket/common/run_time.h"
 #include "rocket/net/rpc/rpc_controller.h"
 #include "rocket/net/tcp/net_addr.h"
 #include "rocket/net/tcp/tcp_connection.h"
@@ -84,12 +85,15 @@ namespace rocket
 
         google::protobuf::Message *rsp_msg = service->GetResponsePrototype(method).New();
 
-        // 通过controller对象可以获取本次调用的一些信息
+        // 通过controller对象可以获取本次调用的一些信息,该线程处理rpc请求方法
         RpcController rpcController;
         rpcController.SetLocalAddr(connection->getLocalAddr());
         rpcController.SetPeerAddr(connection->getPeerAddr());
         rpcController.SetMsgId(req_protocol->m_msg_id);
 
+        //进入RPC处理，也就是业务方法
+        RunTime::GetRunTime()->m_msgid = req_protocol->m_msg_id;
+        RunTime::GetRunTime()->m_method_name = req_protocol->m_method_name;
         service->CallMethod(method, &rpcController, req_msg, rsp_msg, NULL);
 
         // 将rsp_msg对象序列化成字节流,然后返回到m_pd_data中

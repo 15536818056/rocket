@@ -35,6 +35,10 @@ class ScopeMutex {
       m_mutex.unlock();
     }
   }
+  pthread_mutex_t * getMutex()
+  {
+    return &m_mutex;
+  }
 
  private:
 
