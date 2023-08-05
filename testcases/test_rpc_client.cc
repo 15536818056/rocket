@@ -93,9 +93,9 @@ void test_rpc_channel()
         {
             INFOLOG("call rpc success, request [%s], response [%s]", request->ShortDebugString().c_str(), response->ShortDebugString().c_str());
             //执行业务逻辑
-            // if (response->order_id() == "xxd")
-            // {
-            // }
+            if (response->order_id() == "xxd")
+            {
+            }
         }
         else
         {
@@ -108,10 +108,9 @@ void test_rpc_channel()
     // //初始化channel
     // channel->Init(controller, request, response, closure);
     
-    // //.get()是获取裸指针吗
-    // Order_Stub stub(channel.get());
-    // stub.makeOrder(controller.get(), request.get(), response.get(), closure.get());   //调用RPC方法
-    CALLRPC("127.0.0.1:11111", makeOrder, controller, request, response, closure);
+    CALLRPC("127.0.0.1:11111", Order_Stub, makeOrder, controller, request, response, closure);
+    //这里如果是调用回调函数，就是异步的，会导致回调函数的层层调用，但如果是同步的，就会阻塞
+    //通过携程就可以解决这个问题，只阻塞一个携程，不会阻塞当前线程 
 }
 
 int main()

@@ -1,4 +1,5 @@
 #include "rocket/net/tcp/tcp_server.h"
+#include "rocket/common/config.h"
 
 
 namespace rocket {
@@ -16,7 +17,8 @@ namespace rocket {
     void TcpServer::init() {
         m_acceptor = std::make_shared<TcpAcceptor>(m_local_addr);
         m_main_event_loop = EventLoop::GetCurrentEventLoop(); 
-        m_io_thread_group = new IOThreadGroup(2);
+        //可以把所有连接放到一个公共队列中，每个IO线程从公共队列中取
+        m_io_thread_group = new IOThreadGroup(Config::GetGlobalConfig()->m_io_threads);
         m_listen_fd_event =  new FdEvent(m_acceptor->getListenFd());
         //当listenfd可读的时候就会调用onAccept函数
         m_listen_fd_event->listen(FdEvent::IN_EVENT, std::bind(&TcpServer::onAccept, this));
@@ -31,6 +33,9 @@ namespace rocket {
         //把client_fd添加到任意IO线程里面
         IOThread * io_thread = m_io_thread_group->getIOThread();
         TcpConnection::s_ptr connection = std::make_shared<TcpConnection>(io_thread->getEventLoop(), client_fd, 128, peer_addr, m_local_addr); 
+        /*
+        老师最后一节留的任务，就是加入定时任务，通过状态来判断是否要析构connection 
+        */
         connection->setState(Connected);
         m_client.insert(connection);
         INFOLOG("TcpServer succ get client, fd = %d", client_fd);

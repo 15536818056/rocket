@@ -95,7 +95,7 @@ PRINT-% : ; @echo $* = $($*)
 clean :
 	rm -f $(COMM_OBJ) $(NET_OBJ) $(TESTCASES) $(TEST_CASE_OUT) $(PATH_LIB)/librocket.a $(PATH_OBJ)/librocket.a $(PATH_OBJ)/*.o
 
-# install
+# install 也就是将所有的头文件拷贝到头文件目录下，库文件拷贝到库文件目录下
 install:
 	mkdir -p $(PATH_INSTALL_INC_COMM) $(PATH_INSTALL_INC_NET) $(PATH_INSTALL_INC_TCP) $(PATH_INSTALL_INC_CODER) $(PATH_INSTALL_INC_RPC)\
 		&& cp $(PATH_COMM)/*.h $(PATH_INSTALL_INC_COMM) \
